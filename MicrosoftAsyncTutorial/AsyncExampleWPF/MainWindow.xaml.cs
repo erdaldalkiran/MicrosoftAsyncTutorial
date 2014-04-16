@@ -4,6 +4,7 @@ namespace AsyncExampleWPF
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -30,19 +31,18 @@ namespace AsyncExampleWPF
 
         private async Task SumPageSizesAsync()
         {
-            var total = 0;
-            foreach (var url in SetUpURLList())
-            {
-                var client = new HttpClient { MaxResponseContentBufferSize = 1000000 };
-                var content = await client.GetByteArrayAsync(url);
-                DisplayResults(
-                    url,
-                    content
-                );
-                total += content.Length;
-            }
+            var downloadTasks = SetUpURLList().Select(ProcessURLAsync).ToList();
+            var lengths = await Task.WhenAll(downloadTasks);
 
-            ResultsTextBox.Text += string.Format("\r\n\r\nTotal bytes returned: {0}\r\n", total);
+            ResultsTextBox.Text += string.Format("\r\n\r\nTotal bytes returned: {0}\r\n", lengths.Sum());
+        }
+
+        private async Task<int> ProcessURLAsync(string url)
+        {
+            var client = new HttpClient { MaxResponseContentBufferSize = 1000000 };
+            var content = await client.GetByteArrayAsync(url);
+            this.DisplayResults(url, content);
+            return content.Length;
         }
 
         private void DisplayResults(string url, byte[] content)
