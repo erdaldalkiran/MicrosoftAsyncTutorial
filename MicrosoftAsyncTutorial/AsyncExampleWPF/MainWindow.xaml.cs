@@ -41,7 +41,7 @@ namespace AsyncExampleWPF
         {
             var client = new HttpClient { MaxResponseContentBufferSize = 1000000 };
             var content = await client.GetByteArrayAsync(url);
-            this.DisplayResults(url, content);
+            DisplayResults(url, content);
             return content.Length;
         }
 
